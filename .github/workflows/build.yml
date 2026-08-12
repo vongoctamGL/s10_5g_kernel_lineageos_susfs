@@ -70,6 +70,11 @@ jobs:
           if [ -f "KernelSU-Next/kernel/hook/arm64/patch_memory.c" ]; then
             sed -i 's/__flush_icache_range/flush_icache_range/g' KernelSU-Next/kernel/hook/arm64/patch_memory.c
           fi
+          if [ -f "KernelSU-Next/kernel/infra/file_wrapper.c" ]; then
+            echo "[+] Stubbing file_wrapper.c for Linux 4.14..."
+            sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)' KernelSU-Next/kernel/infra/file_wrapper.c
+            printf '\n#else\n#include <linux/file.h>\n#include <linux/fs.h>\nint ksu_install_file_wrapper(int fd) { return 0; }\nvoid ksu_uninstall_file_wrapper(struct file *file) {}\n#endif\n' >> KernelSU-Next/kernel/infra/file_wrapper.c
+          fi
 
           echo "[+] Creating linux/pgtable.h compatibility wrapper for Kernel 4.14..."
           echo "#include <asm/pgtable.h>" > include/linux/pgtable.h
