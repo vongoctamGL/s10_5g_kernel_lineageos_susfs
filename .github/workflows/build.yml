@@ -73,20 +73,15 @@ jobs:
 
           echo "[+] KernelSU-Next integration done."
 
-      - name: Apply SuSFS Patches
+      - name: Apply SuSFS Patch to KernelSU-Next
         run: |
           git clone --depth=1 -b kernel-4.14 https://gitlab.com/simonpunk/susfs4ksu.git susfs_src
-          cd kernel
-          cp ../susfs_src/kernel_patches/fs/susfs.c fs/
-          cp ../susfs_src/kernel_patches/include/linux/susfs.h include/linux/
-          cp ../susfs_src/kernel_patches/include/linux/sus_su.h include/linux/
-          if [ -d "KernelSU-Next" ]; then
-            cp ../susfs_src/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU-Next/ || true
-            cd KernelSU-Next
+          if [ -d "kernel/KernelSU-Next" ]; then
+            echo "[+] Applying SuSFS patch to KernelSU-Next..."
+            cp susfs_src/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch kernel/KernelSU-Next/ || true
+            cd kernel/KernelSU-Next
             patch -p1 < 10_enable_susfs_for_ksu.patch || true
-            cd ..
           fi
-          patch -p1 < ../susfs_src/kernel_patches/50_add_susfs_in_kernel-4.14.patch || true
 
       - name: Update Defconfig
         run: |
