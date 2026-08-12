@@ -54,7 +54,8 @@ jobs:
           echo "[+] Cloning KernelSU-Next..."
           git clone --depth=1 https://github.com/rifsxd/KernelSU-Next.git KernelSU-Next
 
-          echo "[+] Symlinking/copying KernelSU headers to include/linux..."
+          echo "[+] Copying KernelSU headers to include/ and include/linux/..."
+          cp -fv KernelSU-Next/kernel/*.h include/ || true
           cp -fv KernelSU-Next/kernel/*.h include/linux/ || true
           ln -sf "$(pwd)/KernelSU-Next/kernel" drivers/kernelsu
 
@@ -115,7 +116,7 @@ jobs:
             CLANG_TRIPLE=aarch64-linux-gnu- \
             CROSS_COMPILE=aarch64-none-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabihf- \
-            KCFLAGS="-w -Wno-error -march=armv8-a+lse -I$GITHUB_WORKSPACE/kernel/drivers/kernelsu -I$GITHUB_WORKSPACE/kernel/KernelSU-Next/kernel"
+            KCFLAGS="-w -Wno-error -march=armv8-a+lse -I$GITHUB_WORKSPACE/kernel/include -I$GITHUB_WORKSPACE/kernel/drivers/kernelsu -I$GITHUB_WORKSPACE/kernel/KernelSU-Next/kernel"
 
       - name: Package AnyKernel3 Zip
         run: |
