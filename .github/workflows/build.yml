@@ -75,6 +75,14 @@ jobs:
             sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)' KernelSU-Next/kernel/infra/file_wrapper.c
             printf '\n#else\n#include <linux/file.h>\n#include <linux/fs.h>\nint ksu_install_file_wrapper(int fd) { return 0; }\nvoid ksu_uninstall_file_wrapper(struct file *file) {}\n#endif\n' >> KernelSU-Next/kernel/infra/file_wrapper.c
           fi
+          if [ -f "KernelSU-Next/kernel/infra/event_queue.h" ]; then
+            echo "[+] Patching event_queue.h for Linux 4.14 poll compatibility..."
+            sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif' KernelSU-Next/kernel/infra/event_queue.h
+          fi
+          if [ -f "KernelSU-Next/kernel/include/ksu.h" ]; then
+            echo "[+] Patching ksu.h for Linux 4.14 poll compatibility..."
+            sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif' KernelSU-Next/kernel/include/ksu.h
+          fi
 
           echo "[+] Creating linux/pgtable.h compatibility wrapper for Kernel 4.14..."
           echo "#include <asm/pgtable.h>" > include/linux/pgtable.h
