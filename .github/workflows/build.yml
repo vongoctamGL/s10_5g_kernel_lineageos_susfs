@@ -59,13 +59,16 @@ jobs:
             sed -i '1i #include <linux/syscalls.h>\n#include <asm/syscall.h>\nstruct pt_regs;\ntypedef long (*syscall_fn_t)(struct pt_regs *);' KernelSU-Next/kernel/hook/syscall_hook.h
           fi
 
-          echo "[+] Patching lsm_hook.c for Linux 4.14 list_head compatibility..."
+          echo "[+] Patching lsm_hook.c and patch_memory.c for Linux 4.14 compatibility..."
           if [ -f "KernelSU-Next/kernel/hook/lsm_hook.c" ]; then
             sed -i 's/hlist_for_each_entry/list_for_each_entry/g' KernelSU-Next/kernel/hook/lsm_hook.c
             sed -i 's/\.pprev/\.prev/g' KernelSU-Next/kernel/hook/lsm_hook.c
             sed -i 's/->first/->next/g' KernelSU-Next/kernel/hook/lsm_hook.c
             sed -i 's/struct hlist_head/struct list_head/g' KernelSU-Next/kernel/hook/lsm_hook.c
             sed -i 's/struct hlist_node/struct list_head/g' KernelSU-Next/kernel/hook/lsm_hook.c
+          fi
+          if [ -f "KernelSU-Next/kernel/hook/arm64/patch_memory.c" ]; then
+            sed -i 's/__flush_icache_range/flush_icache_range/g' KernelSU-Next/kernel/hook/arm64/patch_memory.c
           fi
 
           echo "[+] Creating linux/pgtable.h compatibility wrapper for Kernel 4.14..."
