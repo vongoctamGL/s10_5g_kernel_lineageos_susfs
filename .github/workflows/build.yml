@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Build Kernel Job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Repository
@@ -18,7 +18,8 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libncurses-dev bzip2 git bison flex libssl-dev libelf-dev bc ccache zip curl wget python3 lz4 liblz4-tool u-boot-tools patch libarchive-tools zstd rsync cpio kmod openssl pahole
+          sudo apt-get install -y build-essential libncurses5-dev bzip2 git bison flex libssl-dev libelf-dev bc ccache zip curl wget python3 lz4 liblz4-tool u-boot-tools patch libarchive-tools zstd rsync cpio kmod openssl pahole
+          wget http://security.ubuntu.com/ubuntu/pool/universe/n/ncurses/libtinfo5_6.3-2ubuntu0.1_amd64.deb && sudo dpkg -i libtinfo5_6.3-2ubuntu0.1_amd64.deb
 
       - name: Download Toolchains (ravindu644 recommended)
         run: |
@@ -90,19 +91,19 @@ jobs:
 
       - name: Update Defconfig
         run: |
-          echo "CONFIG_KSU=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_HAS_SU=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSYM=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
-          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> kernel/arch/arm64/configs/exynos9820_defconfig
+          echo "CONFIG_KSU=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_HAS_SU=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSYM=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
+          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> kernel/arch/arm64/configs/exynos9820-beyondx_defconfig
 
       - name: Compile Kernel
         run: |
@@ -111,7 +112,7 @@ jobs:
           export ARCH=arm64
           export SUBARCH=arm64
 
-          make O=out exynos9820_defconfig
+          make O=out exynos9820-beyondx_defconfig
 
           make -j$(nproc) O=out \
             CC=clang \
