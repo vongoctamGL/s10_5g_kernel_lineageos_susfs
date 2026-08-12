@@ -18,31 +18,39 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libncurses-dev bzip2 git bison flex libssl-dev libelf-dev bc ccache zip curl wget python3 lz4 liblz4-tool u-boot-tools patch
+          sudo apt-get install -y build-essential libncurses-dev bzip2 git bison flex libssl-dev libelf-dev bc ccache zip curl wget python3 lz4 liblz4-tool u-boot-tools patch libarchive-tools zstd rsync cpio kmod openssl pahole
 
-      - name: Download Toolchains
+      - name: Download Toolchains (ravindu644 recommended)
         run: |
-          mkdir -p $GITHUB_WORKSPACE/toolchains
-          cd $GITHUB_WORKSPACE/toolchains
+          mkdir -p $GITHUB_WORKSPACE/toolchains && cd $GITHUB_WORKSPACE/toolchains
 
-          echo "[+] Cloning Google Clang r416183b toolchain..."
-          git clone --depth=1 https://gitlab.com/LineageOS/android_prebuilts_clang_host_linux-x86_clang-r416183b.git clang
+          echo "[+] Downloading clang-r383902b (ravindu644 recommended for Linux 4.14)..."
+          wget -q https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains/clang-r383902b.tar.gz
+          mkdir -p clang && tar -xf clang-r383902b.tar.gz -C clang && rm -f clang-r383902b.tar.gz
 
-          echo "[+] Cloning GCC Cross Compilers..."
-          git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 gcc64
-          git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 gcc32
+          echo "[+] Downloading ARM GNU Toolchain (cross compiler)..."
+          wget -q https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          mkdir -p gcc-arm && tar -xf arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz -C gcc-arm --strip-components=1 && rm -f arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
-      - name: Clone Kernel Source (LineageOS A16 - ravindu644 Exynos9820)
+          echo "[+] Toolchains ready."
+          ls -la clang/bin/ | head -5
+          ls -la gcc-arm/bin/ | head -5
+
+      - name: Clone Kernel Source (ravindu644 Exynos9820)
         run: |
           cd $GITHUB_WORKSPACE
-          # Attempt lineage-23.2 (Android 16), fallback to lineage-22.1 if not present
-          git clone --depth=1 -b lineage-23.2 https://github.com/ravindu644/android_kernel_aosp_exynos9820.git kernel || \
-          git clone --depth=1 -b lineage-22.1 https://github.com/ravindu644/android_kernel_aosp_exynos9820.git kernel
+          echo "[+] Trying lineage-23.2 (Android 16) first..."
+          git clone --depth=1 -b lineage-23.2 https://github.com/ravindu644/android_kernel_aosp_exynos9820.git kernel 2>/dev/null || {
+            echo "[!] lineage-23.2 not found, falling back to lineage-22.1 (Android 15)..."
+            git clone --depth=1 -b lineage-22.1 https://github.com/ravindu644/android_kernel_aosp_exynos9820.git kernel
+          }
+          echo "[+] Kernel source cloned. Branch:"
+          cd kernel && git branch -a && head -5 Makefile
 
       - name: Integrate KernelSU-Next
         run: |
           cd kernel
-          curl -LSs "https://raw.githubusercontent.com/rifs28/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
 
       - name: Apply SuSFS Patches
         run: |
@@ -78,11 +86,22 @@ jobs:
       - name: Compile Kernel
         run: |
           cd kernel
-          export PATH=$GITHUB_WORKSPACE/toolchains/clang/bin:$GITHUB_WORKSPACE/toolchains/gcc64/bin:$GITHUB_WORKSPACE/toolchains/gcc32/bin:$PATH
+          export PATH=$GITHUB_WORKSPACE/toolchains/clang/bin:$GITHUB_WORKSPACE/toolchains/gcc-arm/bin:$PATH
           export ARCH=arm64
           export SUBARCH=arm64
+
           make O=out exynos9820_defconfig
-          make -j$(nproc) O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-android- CROSS_COMPILE_ARM32=arm-linux-androideabi-
+
+          make -j$(nproc) O=out \
+            CC=clang \
+            CLANG_TRIPLE=aarch64-linux-gnu- \
+            CROSS_COMPILE=aarch64-none-linux-gnu- \
+            CROSS_COMPILE_ARM32=arm-linux-gnueabihf- \
+            AR=llvm-ar \
+            NM=llvm-nm \
+            OBJCOPY=llvm-objcopy \
+            OBJDUMP=llvm-objdump \
+            STRIP=llvm-strip
 
       - name: Package AnyKernel3 Zip
         run: |
