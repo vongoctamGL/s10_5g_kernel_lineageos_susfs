@@ -50,7 +50,28 @@ jobs:
       - name: Integrate KernelSU-Next
         run: |
           cd kernel
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+
+          echo "[+] Cloning KernelSU-Next..."
+          git clone --depth=1 https://github.com/rifsxd/KernelSU-Next.git KernelSU-Next
+
+          echo "[+] Creating symlink drivers/kernelsu -> KernelSU-Next/kernel..."
+          ln -sf "$(pwd)/KernelSU-Next/kernel" drivers/kernelsu
+
+          echo "[+] Verifying symlink..."
+          ls -la drivers/kernelsu/
+          test -f drivers/kernelsu/Kconfig && echo "[OK] Kconfig found" || echo "[FAIL] Kconfig missing"
+
+          echo "[+] Patching drivers/Kconfig..."
+          if ! grep -q "kernelsu" drivers/Kconfig; then
+            sed -i '/endmenu/i source "drivers/kernelsu/Kconfig"' drivers/Kconfig
+          fi
+
+          echo "[+] Patching drivers/Makefile..."
+          if ! grep -q "kernelsu" drivers/Makefile; then
+            echo "obj-\$(CONFIG_KSU) += kernelsu/" >> drivers/Makefile
+          fi
+
+          echo "[+] KernelSU-Next integration done."
 
       - name: Apply SuSFS Patches
         run: |
