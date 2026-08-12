@@ -118,11 +118,6 @@ jobs:
             CLANG_TRIPLE=aarch64-linux-gnu- \
             CROSS_COMPILE=aarch64-none-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabihf- \
-            AR=llvm-ar \
-            NM=llvm-nm \
-            OBJCOPY=llvm-objcopy \
-            OBJDUMP=llvm-objdump \
-            STRIP=llvm-strip \
             KCFLAGS="-w -Wno-error -march=armv8-a+lse"
 
       - name: Package AnyKernel3 Zip
