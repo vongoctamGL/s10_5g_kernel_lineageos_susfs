@@ -61,6 +61,7 @@ jobs:
 
           echo "[+] Patching lsm_hook.c for Linux 4.14 list_head compatibility..."
           if [ -f "KernelSU-Next/kernel/hook/lsm_hook.c" ]; then
+            sed -i 's/hlist_for_each_entry/list_for_each_entry/g' KernelSU-Next/kernel/hook/lsm_hook.c
             sed -i 's/\.pprev/\.prev/g' KernelSU-Next/kernel/hook/lsm_hook.c
             sed -i 's/->first/->next/g' KernelSU-Next/kernel/hook/lsm_hook.c
             sed -i 's/struct hlist_head/struct list_head/g' KernelSU-Next/kernel/hook/lsm_hook.c
