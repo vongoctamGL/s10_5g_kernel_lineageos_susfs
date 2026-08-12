@@ -61,7 +61,10 @@ jobs:
 
           echo "[+] Patching lsm_hook.c for Linux 4.14 list_head compatibility..."
           if [ -f "KernelSU-Next/kernel/hook/lsm_hook.c" ]; then
-            sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)\n#define hlist_head list_head\n#define hlist_node list_head\n#define pprev prev\n#define first next\n#endif' KernelSU-Next/kernel/hook/lsm_hook.c
+            sed -i 's/\.pprev/\.prev/g' KernelSU-Next/kernel/hook/lsm_hook.c
+            sed -i 's/->first/->next/g' KernelSU-Next/kernel/hook/lsm_hook.c
+            sed -i 's/struct hlist_head/struct list_head/g' KernelSU-Next/kernel/hook/lsm_hook.c
+            sed -i 's/struct hlist_node/struct list_head/g' KernelSU-Next/kernel/hook/lsm_hook.c
           fi
 
           echo "[+] Creating linux/pgtable.h compatibility wrapper for Kernel 4.14..."
