@@ -25,11 +25,11 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/toolchains && cd $GITHUB_WORKSPACE/toolchains
 
           echo "[+] Downloading clang-r383902b (ravindu644 recommended for Linux 4.14)..."
-          wget -q https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains/clang-r383902b.tar.gz
+          wget -c --tries=5 --timeout=30 https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains/clang-r383902b.tar.gz
           mkdir -p clang && tar -xf clang-r383902b.tar.gz -C clang && rm -f clang-r383902b.tar.gz
 
           echo "[+] Downloading ARM GNU Toolchain (cross compiler)..."
-          wget -q https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          wget -c --tries=5 --timeout=30 https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
           mkdir -p gcc-arm && tar -xf arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz -C gcc-arm --strip-components=1 && rm -f arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
           echo "[+] Toolchains ready."
