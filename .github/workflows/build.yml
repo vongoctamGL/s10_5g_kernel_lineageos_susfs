@@ -1,3 +1,4 @@
+# Trigger comment
 name: Build LineageOS Kernel for Samsung S10 5G (KernelSU-Next + SUSFS)
 
 on:
