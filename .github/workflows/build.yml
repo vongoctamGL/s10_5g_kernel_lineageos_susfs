@@ -22,9 +22,9 @@ jobs:
 
       - name: Download Toolchains
         run: |
-          mkdir -p toolchains
-          cd toolchains
-          wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r416183b.tar.gz
+          mkdir -p $GITHUB_WORKSPACE/toolchains
+          cd $GITHUB_WORKSPACE/toolchains
+          wget --no-check-certificate https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r416183b.tar.gz -O clang-r416183b.tar.gz
           mkdir -p clang
           tar -xf clang-r416183b.tar.gz -C clang
           rm -f clang-r416183b.tar.gz
