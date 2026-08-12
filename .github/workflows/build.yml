@@ -1,5 +1,4 @@
-# Trigger comment
-name: Build LineageOS Kernel for Samsung S10 5G (KernelSU-Next + SUSFS)
+name: Build LineageOS Kernel for Samsung S10 5G
 
 on:
   workflow_dispatch:
@@ -9,60 +8,52 @@ on:
 
 jobs:
   build-kernel:
-    name: Build S10 5G Kernel (beyondx)
+    name: Build S10 5G Kernel
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🚀 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 📦 Install System Build Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libncurses5-dev bzip2 libbcc-dev \
             git bison flex libssl-dev libelf-dev bc ccache zip curl wget python3 \
             libtinfo5 lz4 liblz4-tool u-boot-tools patch
 
-      - name: 🛠️ Download Google Clang & GCC Toolchains
+      - name: Download Toolchains
         run: |
           mkdir -p $GITHUB_WORKSPACE/toolchains
           cd $GITHUB_WORKSPACE/toolchains
 
-          # Download Google Clang r416183b
-          echo "[+] Downloading Google Clang r416183b..."
           wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r416183b.tar.gz
           mkdir -p clang && tar -xf clang-r416183b.tar.gz -C clang
           rm -f clang-r416183b.tar.gz
 
-          # Download GCC aarch64 and arm32
-          echo "[+] Cloning GCC Cross Compilers..."
           git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 gcc64
           git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 gcc32
 
-      - name: 📥 Clone Kernel Source (ravindu644 Exynos9820)
+      - name: Clone Kernel Source
         run: |
           cd $GITHUB_WORKSPACE
           git clone --depth=1 -b lineage-22.1 https://github.com/ravindu644/android_kernel_aosp_exynos9820.git kernel
 
-      - name: 🔌 Integrate KernelSU-Next
+      - name: Integrate KernelSU-Next
         run: |
           cd $GITHUB_WORKSPACE/kernel
-          echo "[+] Integrating KernelSU-Next..."
           curl -LSs "https://raw.githubusercontent.com/rifs28/KernelSU-Next/next/kernel/setup.sh" | bash -s next
 
-      - name: 🛡️ Apply SuSFS 4.14 Kernel Patches (simonpunk)
+      - name: Apply SuSFS Patches
         run: |
           cd $GITHUB_WORKSPACE
-          echo "[+] Cloning simonpunk/susfs4ksu (kernel-4.14 branch)..."
           git clone --depth=1 -b kernel-4.14 https://gitlab.com/simonpunk/susfs4ksu.git susfs_src
 
           cd $GITHUB_WORKSPACE/kernel
-          # Copy C sources and headers
           cp $GITHUB_WORKSPACE/susfs_src/kernel_patches/fs/susfs.c fs/
           cp $GITHUB_WORKSPACE/susfs_src/kernel_patches/include/linux/susfs.h include/linux/
           cp $GITHUB_WORKSPACE/susfs_src/kernel_patches/include/linux/sus_su.h include/linux/
 
-          # Patch KernelSU-Next for SUSFS
           if [ -d "KernelSU-Next" ]; then
             cp $GITHUB_WORKSPACE/susfs_src/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU-Next/ || true
             cd KernelSU-Next
@@ -70,17 +61,13 @@ jobs:
             cd ..
           fi
 
-          # Apply Core Kernel 4.14 SUSFS patch
-          echo "[+] Applying 50_add_susfs_in_kernel-4.14.patch..."
           patch -p1 < $GITHUB_WORKSPACE/susfs_src/kernel_patches/50_add_susfs_in_kernel-4.14.patch || true
 
-      - name: ⚙️ Update Defconfig for KernelSU & SUSFS
+      - name: Update Defconfig
         run: |
           DEFCONFIG="$GITHUB_WORKSPACE/kernel/arch/arm64/configs/exynos9820_defconfig"
-          echo "[+] Adding KSU & SUSFS flags to $DEFCONFIG..."
           cat <<EOT >> $DEFCONFIG
 
-# KernelSU-Next and SUSFS Settings
 CONFIG_KSU=y
 CONFIG_KSU_SUSFS=y
 CONFIG_KSU_SUSFS_HAS_SU=y
@@ -96,7 +83,7 @@ CONFIG_KSU_SUSFS_ENABLE_LOG=y
 CONFIG_KSU_SUSFS_OPEN_REDIRECT=y
 EOT
 
-      - name: 🏗️ Compile Kernel
+      - name: Compile Kernel
         run: |
           cd $GITHUB_WORKSPACE/kernel
 
@@ -104,36 +91,32 @@ EOT
           export ARCH=arm64
           export SUBARCH=arm64
 
-          echo "[+] Generating defconfig..."
           make O=out exynos9820_defconfig
 
-          echo "[+] Starting Compilation..."
           make -j$(nproc) O=out \
             CC=clang \
             CLANG_TRIPLE=aarch64-linux-gnu- \
             CROSS_COMPILE=aarch64-linux-android- \
             CROSS_COMPILE_ARM32=arm-linux-androideabi-
 
-      - name: 📦 Package AnyKernel3 Zip
+      - name: Package AnyKernel3 Zip
         run: |
           cd $GITHUB_WORKSPACE
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git AK3
 
-          # Copy compiled kernel image
           if [ -f "$GITHUB_WORKSPACE/kernel/out/arch/arm64/boot/Image.lz4" ]; then
             cp $GITHUB_WORKSPACE/kernel/out/arch/arm64/boot/Image.lz4 AK3/Image.lz4
           elif [ -f "$GITHUB_WORKSPACE/kernel/out/arch/arm64/boot/Image" ]; then
             cp $GITHUB_WORKSPACE/kernel/out/arch/arm64/boot/Image AK3/Image
           fi
 
-          # Update AnyKernel3 device config for beyondx
           sed -i 's/device.name1=.*/device.name1=beyondx/g' AK3/anykernel.sh || true
           sed -i 's/device.name2=.*/device.name2=beyondxks/g' AK3/anykernel.sh || true
 
           cd AK3
           zip -r9 $GITHUB_WORKSPACE/KernelSU-Next-SUSFS-S10-5G-beyondx.zip * -x .git\* README.md
 
-      - name: 📤 Upload Build Artifacts
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: KernelSU-Next-SUSFS-S10-5G-beyondx
