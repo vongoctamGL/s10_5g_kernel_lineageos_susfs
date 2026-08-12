@@ -54,6 +54,11 @@ jobs:
           echo "[+] Cloning KernelSU-Next..."
           git clone --depth=1 https://github.com/rifsxd/KernelSU-Next.git KernelSU-Next
 
+          echo "[+] Patching syscall_hook.h for Kernel 4.14 compatibility..."
+          if [ -f "KernelSU-Next/kernel/hook/syscall_hook.h" ]; then
+            sed -i '1i #include <linux/syscalls.h>\n#include <asm/syscall.h>\ntypedef void (*syscall_fn_t)(void);' KernelSU-Next/kernel/hook/syscall_hook.h
+          fi
+
           echo "[+] Copying KernelSU headers from kernel/include to include/ and include/linux/..."
           cp -fv KernelSU-Next/kernel/include/*.h include/ || true
           cp -fv KernelSU-Next/kernel/include/*.h include/linux/ || true
