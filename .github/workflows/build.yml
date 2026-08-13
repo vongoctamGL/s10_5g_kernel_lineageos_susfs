@@ -79,6 +79,10 @@ jobs:
             echo "[+] Patching event_queue.h for Linux 4.14 poll compatibility..."
             sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif' KernelSU-Next/kernel/infra/event_queue.h
           fi
+          if [ -f "KernelSU-Next/kernel/policy/allowlist.c" ]; then
+            echo "[+] Patching allowlist.c for Linux 4.14 task_work & fallthrough compatibility..."
+            sed -i '1i #ifndef TWA_RESUME\n#define TWA_RESUME true\n#endif\n#ifndef fallthrough\n#define fallthrough do {} while (0)\n#endif' KernelSU-Next/kernel/policy/allowlist.c
+          fi
           if [ -f "KernelSU-Next/kernel/manager/pkg_observer.c" ]; then
             echo "[+] Patching pkg_observer.c for Linux 4.14 fsnotify_ops compatibility..."
             sed -i 's/handle_inode_event/handle_event/g' KernelSU-Next/kernel/manager/pkg_observer.c
@@ -92,8 +96,8 @@ jobs:
             sed -i '1i #ifndef SECCOMP_ARCH_NATIVE_NR\n#define SECCOMP_ARCH_NATIVE_NR 500\n#endif\n#ifndef SECCOMP_ARCH_COMPAT_NR\n#define SECCOMP_ARCH_COMPAT_NR 500\n#endif' KernelSU-Next/kernel/infra/seccomp_cache.c
           fi
           if [ -f "KernelSU-Next/kernel/include/ksu.h" ]; then
-            echo "[+] Patching ksu.h for Linux 4.14 poll & seccomp compatibility..."
-            sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif\n#ifndef SECCOMP_ARCH_NATIVE_NR\n#define SECCOMP_ARCH_NATIVE_NR 500\n#endif\n#ifndef SECCOMP_ARCH_COMPAT_NR\n#define SECCOMP_ARCH_COMPAT_NR 500\n#endif' KernelSU-Next/kernel/include/ksu.h
+            echo "[+] Patching ksu.h for Linux 4.14 poll & seccomp & task_work compatibility..."
+            sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif\n#ifndef SECCOMP_ARCH_NATIVE_NR\n#define SECCOMP_ARCH_NATIVE_NR 500\n#endif\n#ifndef SECCOMP_ARCH_COMPAT_NR\n#define SECCOMP_ARCH_COMPAT_NR 500\n#endif\n#ifndef TWA_RESUME\n#define TWA_RESUME true\n#endif\n#ifndef fallthrough\n#define fallthrough do {} while (0)\n#endif' KernelSU-Next/kernel/include/ksu.h
           fi
 
           echo "[+] Creating linux/pgtable.h compatibility wrapper for Kernel 4.14..."
