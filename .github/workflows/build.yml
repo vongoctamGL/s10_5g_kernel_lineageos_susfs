@@ -98,8 +98,10 @@ jobs:
           echo "[+] Patching check_add_overflow and ksys_close for 4.14 compatibility..."
           sed -i 's/check_add_overflow/__builtin_add_overflow/g' drivers/kernelsu/sulog/event.c || true
           sed -i 's/ksys_close/sys_close/g' drivers/kernelsu/include/util.h || true
-          echo "[+] Patching strncpy_from_user_nofault and selinux_cred for 4.14 compatibility..."
-          sed -i 's/strncpy_from_user_nofault/strncpy_from_user/g' drivers/kernelsu/sulog/event.c || true
+          echo "[+] Patching _nofault memory functions and selinux_cred for 4.14 compatibility..."
+          find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/strncpy_from_user_nofault/strncpy_from_user/g' {} + || true
+          find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/copy_from_user_nofault/copy_from_user/g' {} + || true
+          find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/copy_to_user_nofault/copy_to_user/g' {} + || true
           sed -i 's/selinux_cred(cred)/cred->security/g' drivers/kernelsu/selinux/selinux.c || true
           echo "[+] Patching dispatch.c for 4.14 compatibility (missing headers)..."
           sed -i '1s/^/#include <linux\/sched\/signal.h>\n#include <linux\/sched\/task.h>\n/' drivers/kernelsu/supercall/dispatch.c || true
