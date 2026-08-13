@@ -218,16 +218,14 @@ jobs:
 
           find KernelSU-Next drivers/kernelsu -name "su_mount_ns.c" 2>/dev/null | while read file; do
             echo "[+] Patching $file for Linux 4.14..."
-            # Create compat header to prepend
-            printf '#include <linux/ksu_compat.h>\n#include <linux/version.h>\n#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)\nstatic inline int path_mount(const char *dev_name, struct path *path,\n    const char *type_page, unsigned long flags, const void *data_page)\n{\n    return -EINVAL;\n}\n#endif\n' > /tmp/su_mount_compat.h
+            # Create compat header to prepend with all 4.14 stubs
+            printf '#include <linux/ksu_compat.h>\n#include <linux/version.h>\n#include <linux/mount.h>\n#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)\nextern long sys_setns(int fd, int nstype);\nstatic inline int path_mount(const char *dev_name, struct path *path,\n    const char *type_page, unsigned long flags, const void *data_page)\n{\n    return -EINVAL;\n}\n#endif\n' > /tmp/su_mount_compat.h
             cat /tmp/su_mount_compat.h "$file" > /tmp/su_mount_new.c
             mv /tmp/su_mount_new.c "$file"
             sed -i 's/<uapi\/linux\/mount.h>/<linux\/mount.h>/g' "$file"
-            # Comment out the original path_mount extern declaration
+            # Comment out original extern declarations that conflict
             sed -i 's/^extern int path_mount(/\/\/ extern int path_mount(/g' "$file"
-            # Wrap __arm64_sys_setns declaration
-            sed -i '/^extern long __arm64_sys_setns/i #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)' "$file"
-            sed -i '/^extern long __arm64_sys_setns/a #else\nextern long sys_setns(int fd, int nstype);\n#endif' "$file"
+            sed -i 's/^extern long __arm64_sys_setns(/\/\/ extern long __arm64_sys_setns(/g' "$file"
           done
 
           find KernelSU-Next drivers/kernelsu -name "seccomp_cache.c" 2>/dev/null | while read file; do
