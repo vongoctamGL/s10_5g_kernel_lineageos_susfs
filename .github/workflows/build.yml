@@ -122,6 +122,9 @@ jobs:
           sed -i 's/int pm_ret = path_mount(NULL, \&root_path, NULL, MS_PRIVATE | MS_REC, NULL);/int pm_ret = 0;/g' drivers/kernelsu/infra/su_mount_ns.c || true
           echo "[+] Patching struct_size in event_queue.c..."
           sed -i 's/struct_size(node, payload, len)/(sizeof(\*node) + (len))/g' drivers/kernelsu/infra/event_queue.c || true
+          echo "[+] Patching patch_memory.c for 4.14 compatibility..."
+          sed -i 's/__pte_to_phys(\*pte)/(pte_pfn(\*pte) << PAGE_SHIFT)/g' drivers/kernelsu/hook/arm64/patch_memory.c || true
+          sed -i 's/copy_to_kernel_nofault/probe_kernel_write/g' drivers/kernelsu/hook/arm64/patch_memory.c || true
           echo "[+] Patching allowlist.c for 4.14 compatibility (missing task.h)..."
           sed -i '1s/^/#include <linux\/sched\/task.h>\n/' drivers/kernelsu/policy/allowlist.c || true
           echo "[+] Patching app_profile.c for 4.14 compatibility (stub seccomp_filter_release)..."
