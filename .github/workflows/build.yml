@@ -74,6 +74,8 @@ jobs:
           sed -i 's/EPOLLIN/POLLIN/g' drivers/kernelsu/infra/event_queue.c || true
           sed -i 's/EPOLLRDNORM/POLLRDNORM/g' drivers/kernelsu/infra/event_queue.c || true
           sed -i 's/EPOLLERR/POLLERR/g' drivers/kernelsu/infra/event_queue.c || true
+          echo "[+] Patching seccomp_cache.c for 4.14 compatibility..."
+          sed -i '1s/^/#ifndef SECCOMP_ARCH_NATIVE_NR\n#define SECCOMP_ARCH_NATIVE_NR 1024\n#endif\n/' drivers/kernelsu/infra/seccomp_cache.c || true
           echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
           cp drivers/kernelsu/include/*.h include/linux/ || true
           cp drivers/kernelsu/include/*.h include/ || true
