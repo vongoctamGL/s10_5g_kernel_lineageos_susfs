@@ -105,6 +105,7 @@ jobs:
           echo "void ksu_selinux_hide_handle_post_fs_data(void) {}" >> drivers/kernelsu/feature/selinux_hide.c
           sed -i 's/selinux_state\.enforcing/selinux_enforcing/g' drivers/kernelsu/selinux/selinux.c || true
           sed -i 's/selinux_state\.disabled/selinux_disabled/g' drivers/kernelsu/selinux/selinux.c || true
+          sed -i '1s/^/extern int selinux_enforcing;\nextern int selinux_disabled;\n/' drivers/kernelsu/selinux/selinux.c || true
           echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
           cp drivers/kernelsu/include/*.h include/linux/ || true
           cp drivers/kernelsu/include/*.h include/ || true
