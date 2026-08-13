@@ -226,6 +226,7 @@ jobs:
             # Comment out original extern declarations that conflict
             sed -i '/extern int path_mount(/s/^/\/\/ /' "$file"
             sed -i '/extern long __arm64_sys_setns(/s/^/\/\/ /' "$file"
+            sed -i '/extern long __x64_sys_setns(/s/^/\/\/ /' "$file"
             echo "=== DEBUG: $file lines 30-55 after patching ==="
             sed -n '30,55p' "$file" | cat -n
             echo "=== END DEBUG ==="
