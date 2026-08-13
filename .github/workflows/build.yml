@@ -68,6 +68,12 @@ jobs:
           echo "[+] Stubbing file_wrapper.c for 4.14 compatibility (feature disabled)..."
           echo "int ksu_install_file_wrapper(int fd) { return 0; }" > drivers/kernelsu/infra/file_wrapper.c
           echo "void ksu_file_wrapper_init(void) {}" >> drivers/kernelsu/infra/file_wrapper.c
+          echo "[+] Patching event_queue for 4.14 compatibility (__poll_t and EPOLL)..."
+          find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/__poll_t/unsigned int/g' {} + || true
+          sed -i 's/EPOLLHUP/POLLHUP/g' drivers/kernelsu/infra/event_queue.c || true
+          sed -i 's/EPOLLIN/POLLIN/g' drivers/kernelsu/infra/event_queue.c || true
+          sed -i 's/EPOLLRDNORM/POLLRDNORM/g' drivers/kernelsu/infra/event_queue.c || true
+          sed -i 's/EPOLLERR/POLLERR/g' drivers/kernelsu/infra/event_queue.c || true
           echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
           cp drivers/kernelsu/include/*.h include/linux/ || true
           cp drivers/kernelsu/include/*.h include/ || true
