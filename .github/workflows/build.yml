@@ -79,6 +79,10 @@ jobs:
             echo "[+] Patching event_queue.h for Linux 4.14 poll compatibility..."
             sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif' KernelSU-Next/kernel/infra/event_queue.h
           fi
+          if [ -d "KernelSU-Next" ]; then
+            echo "[+] Fixing linux/minmax.h header for Linux 4.14 compatibility..."
+            find KernelSU-Next -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/#include <linux\/minmax.h>/#include <linux\/kernel.h>/g' {} +
+          fi
           if [ -f "KernelSU-Next/kernel/selinux/sepolicy.c" ]; then
             echo "[+] Stubbing sepolicy.c for Linux 4.14..."
             sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)' KernelSU-Next/kernel/selinux/sepolicy.c
