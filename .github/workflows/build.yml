@@ -140,7 +140,7 @@ jobs:
 
           find KernelSU-Next drivers/kernelsu -name "seccomp_cache.c" 2>/dev/null | while read file; do
             echo "[+] Prepending ksu.h to $file..."
-            printf '#include <linux/stdarg.h>\n#include <linux/types.h>\n#include "ksu.h"\n' > /tmp/sc_head.h
+            printf '#include <stdarg.h>\n#include <linux/types.h>\n#include "ksu.h"\n' > /tmp/sc_head.h
             cat /tmp/sc_head.h "$file" > /tmp/sc_new.c
             mv /tmp/sc_new.c "$file"
           done
