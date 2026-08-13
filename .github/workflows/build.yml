@@ -139,8 +139,10 @@ jobs:
           done
 
           find KernelSU-Next drivers/kernelsu -name "seccomp_cache.c" 2>/dev/null | while read file; do
-            echo "[+] Patching $file..."
-            sed -i 's/#include <linux/seccomp.h>/#include <linux\/seccomp.h>\n#include "ksu.h"/g' "$file"
+            echo "[+] Prepending ksu.h to $file..."
+            printf '#include <linux/stdarg.h>\n#include <linux/types.h>\n#include "ksu.h"\n' > /tmp/sc_head.h
+            cat /tmp/sc_head.h "$file" > /tmp/sc_new.c
+            mv /tmp/sc_new.c "$file"
           done
 
           find KernelSU-Next drivers/kernelsu -name "file_wrapper.h" 2>/dev/null | while read file; do
