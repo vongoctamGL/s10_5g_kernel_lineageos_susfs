@@ -79,6 +79,10 @@ jobs:
             echo "[+] Patching event_queue.h for Linux 4.14 poll compatibility..."
             sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif' KernelSU-Next/kernel/infra/event_queue.h
           fi
+          if [ -f "KernelSU-Next/kernel/policy/app_profile.c" ]; then
+            echo "[+] Patching app_profile.c for Linux 4.14 seccomp filter_count compatibility..."
+            sed -i 's/atomic_set(&current->seccomp.filter_count, 0);/\/\/ disabled for 4.14/g' KernelSU-Next/kernel/policy/app_profile.c
+          fi
           if [ -f "KernelSU-Next/kernel/policy/allowlist.c" ]; then
             echo "[+] Patching allowlist.c for Linux 4.14 task_work & fallthrough compatibility..."
             sed -i '1i #ifndef TWA_RESUME\n#define TWA_RESUME true\n#endif\n#ifndef fallthrough\n#define fallthrough do {} while (0)\n#endif' KernelSU-Next/kernel/policy/allowlist.c
