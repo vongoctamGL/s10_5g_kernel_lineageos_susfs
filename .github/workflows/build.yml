@@ -56,6 +56,13 @@ jobs:
           sed -i '1i #include <linux/syscalls.h>\n#include <asm/syscall.h>\nstruct pt_regs;\n#ifndef syscall_fn_t\ntypedef long (*syscall_fn_t)(struct pt_regs *);\n#endif' drivers/kernelsu/hook/syscall_hook.h || true
           sed -i '1i #ifndef MODULE_IMPORT_NS\n#define MODULE_IMPORT_NS(ns)\n#endif' drivers/kernelsu/core/init.c || true
           echo "#include <asm/pgtable.h>" > include/linux/pgtable.h
+          echo "[+] Patching lsm_hook.c for 4.14 compatibility (hlist -> list)..."
+          sed -i 's/hlist_for_each_entry/list_for_each_entry/g' drivers/kernelsu/hook/lsm_hook.c || true
+          sed -i 's/hlist_entry/list_entry/g' drivers/kernelsu/hook/lsm_hook.c || true
+          sed -i 's/hlist_node/list_head/g' drivers/kernelsu/hook/lsm_hook.c || true
+          sed -i 's/hlist_head/list_head/g' drivers/kernelsu/hook/lsm_hook.c || true
+          sed -i 's/->first/->next/g' drivers/kernelsu/hook/lsm_hook.c || true
+          sed -i 's/->pprev = \&head->next/->prev = head/g' drivers/kernelsu/hook/lsm_hook.c || true
           echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
           cp drivers/kernelsu/include/*.h include/linux/ || true
           cp drivers/kernelsu/include/*.h include/ || true
