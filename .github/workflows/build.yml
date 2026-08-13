@@ -253,7 +253,7 @@ jobs:
           echo "[+] Patching patch_memory.c for __pte_to_phys on 4.14..."
           find KernelSU-Next drivers/kernelsu -name "patch_memory.c" 2>/dev/null | while read file; do
             echo "[+] Patching $file..."
-            sed -i '1i #include <linux/ksu_compat.h>\n#include <asm/pgtable.h>\n#ifndef __pte_to_phys\n#define __pte_to_phys(pte) (pte_val(pte) \& PTE_ADDR_MASK)\n#endif' "$file"
+            sed -i '1i #include <linux/ksu_compat.h>\n#include <asm/pgtable.h>\n#include <linux/mm.h>\n#ifndef __pte_to_phys\n#define __pte_to_phys(pte) (pte_pfn(pte) << PAGE_SHIFT)\n#endif' "$file"
           done
 
           echo "[+] Patching pkg_observer.c fsnotify for 4.14..."
