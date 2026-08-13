@@ -218,13 +218,27 @@ jobs:
 
           find KernelSU-Next drivers/kernelsu -name "su_mount_ns.c" 2>/dev/null | while read file; do
             echo "[+] Patching $file for Linux 4.14..."
-            sed -i '1i #include <linux/ksu_compat.h>\n#include <linux/version.h>' "$file"
+            # Create compat header to prepend
+            cat > /tmp/su_mount_compat.h << 'MOUNTEOF'
+#include <linux/ksu_compat.h>
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)
+/* Stub out path_mount - not available on 4.14 */
+static inline int path_mount(const char *dev_name, struct path *path,
+    const char *type_page, unsigned long flags, const void *data_page)
+{
+    return -EINVAL;
+}
+#endif
+MOUNTEOF
+            cat /tmp/su_mount_compat.h "$file" > /tmp/su_mount_new.c
+            mv /tmp/su_mount_new.c "$file"
             sed -i 's/<uapi\/linux\/mount.h>/<linux\/mount.h>/g' "$file"
+            # Comment out the original path_mount extern declaration
+            sed -i 's/^extern int path_mount(/\/\/ extern int path_mount(/g' "$file"
             # Wrap __arm64_sys_setns declaration
-            sed -i 's/extern long __arm64_sys_setns(const struct pt_regs \*regs);/#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)\nextern long __arm64_sys_setns(const struct pt_regs *regs);\nextern int path_mount(const char *dev_name, struct path *path, const char *type_page, unsigned long flags, const void *data_page);\n#else\nextern long sys_setns(int fd, int nstype);\nstatic inline int path_mount(const char *a, struct path *b, const char *c, unsigned long d, const void *e) { return -EINVAL; }\n#endif/g' "$file"
-            sed -i '/^extern int path_mount(/d' "$file" || true
-            # Wrap __arm64_sys_setns usage
-            sed -i 's/return __arm64_sys_setns(\&regs);/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)\nreturn sys_setns(fd, flags);\n#else\nreturn __arm64_sys_setns(\&regs);\n#endif/g' "$file"
+            sed -i '/^extern long __arm64_sys_setns/i #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)' "$file"
+            sed -i '/^extern long __arm64_sys_setns/a #else\nextern long sys_setns(int fd, int nstype);\n#endif' "$file"
           done
 
           find KernelSU-Next drivers/kernelsu -name "seccomp_cache.c" 2>/dev/null | while read file; do
