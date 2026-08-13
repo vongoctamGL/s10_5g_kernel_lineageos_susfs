@@ -114,6 +114,12 @@ jobs:
           sed -i 's/selinux_state\.enforcing = enforce;/ /g' drivers/kernelsu/selinux/selinux.c || true
           sed -i 's/return selinux_state\.enforcing;/return true;/g' drivers/kernelsu/selinux/selinux.c || true
           sed -i 's/if (selinux_state\.disabled)/if (0)/g' drivers/kernelsu/selinux/selinux.c || true
+          echo "[+] Patching sys_setns for 4.14 compatibility..."
+          sed -i 's/__arm64_sys_setns/sys_setns/g' drivers/kernelsu/infra/su_mount_ns.c || true
+          echo "[+] Patching allowlist.c for 4.14 compatibility (missing task.h)..."
+          sed -i '1s/^/#include <linux\/sched\/task.h>\n/' drivers/kernelsu/policy/allowlist.c || true
+          echo "[+] Patching app_profile.c for 4.14 compatibility (stub seccomp_filter_release)..."
+          sed -i 's/seccomp_filter_release(fake);/ /g' drivers/kernelsu/policy/app_profile.c || true
           echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
           cp drivers/kernelsu/include/*.h include/linux/ || true
           cp drivers/kernelsu/include/*.h include/ || true
