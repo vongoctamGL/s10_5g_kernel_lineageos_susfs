@@ -79,6 +79,11 @@ jobs:
             echo "[+] Patching event_queue.h for Linux 4.14 poll compatibility..."
             sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif' KernelSU-Next/kernel/infra/event_queue.h
           fi
+          if [ -f "KernelSU-Next/kernel/selinux/sepolicy.c" ]; then
+            echo "[+] Stubbing sepolicy.c for Linux 4.14..."
+            sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)' KernelSU-Next/kernel/selinux/sepolicy.c
+            printf '\n#else\n#include <linux/types.h>\n#include "klog.h"\nbool ksu_load_sepolicy(void) { return true; }\n#endif\n' >> KernelSU-Next/kernel/selinux/sepolicy.c
+          fi
           if [ -f "KernelSU-Next/kernel/selinux/rules.c" ]; then
             echo "[+] Stubbing rules.c for Linux 4.14..."
             sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)' KernelSU-Next/kernel/selinux/rules.c
