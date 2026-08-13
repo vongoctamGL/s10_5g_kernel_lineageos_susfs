@@ -125,8 +125,10 @@ jobs:
           echo "[+] Patching patch_memory.c for 4.14 compatibility..."
           sed -i 's/__pte_to_phys(\*pte)/(pte_pfn(\*pte) << PAGE_SHIFT)/g' drivers/kernelsu/hook/arm64/patch_memory.c || true
           sed -i 's/copy_to_kernel_nofault/probe_kernel_write/g' drivers/kernelsu/hook/arm64/patch_memory.c || true
-          echo "[+] Stubbing obsolete ksu_handle_* functions in init.c..."
-          echo -e "\nvoid ksu_handle_stat(void* a) {}\nvoid ksu_handle_execveat(void* a) {}\nvoid ksu_handle_devpts(void* a) {}" >> drivers/kernelsu/core/init.c || true
+          echo "[+] Dynamically stubbing obsolete ksu_handle_* functions as weak symbols in init.c..."
+          grep -rhoE "ksu_handle_[a-zA-Z0-9_]+" fs/ include/linux/ | sort -u | while read -r func; do
+            echo "__attribute__((weak)) void $func() {}" >> drivers/kernelsu/core/init.c
+          done
           echo "[+] Patching allowlist.c for 4.14 compatibility (missing task.h)..."
           sed -i '1s/^/#include <linux\/sched\/task.h>\n/' drivers/kernelsu/policy/allowlist.c || true
           echo "[+] Patching app_profile.c for 4.14 compatibility (stub seccomp_filter_release)..."
