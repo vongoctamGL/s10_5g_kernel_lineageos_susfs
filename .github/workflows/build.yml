@@ -188,7 +188,7 @@ jobs:
           #endif
           #if defined(__aarch64__)
           #ifndef __arm64_sys_setns
-          #define __arm64_sys_setns(regs) sys_setns((int)(regs)->regs[0], (int)(regs)->regs[1])
+          #define __arm64_sys_setns(_r) sys_setns((int)(_r)->regs[0], (int)(_r)->regs[1])
           #endif
           #endif
           #endif
