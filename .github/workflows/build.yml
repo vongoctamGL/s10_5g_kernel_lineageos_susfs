@@ -123,8 +123,10 @@ jobs:
           if [ -f "KernelSU-Next/kernel/infra/su_mount_ns.c" ]; then
             echo "[+] Patching su_mount_ns.c for Linux 4.14 sys_setns & path_mount..."
             sed -i 's/<uapi\/linux\/mount.h>/<linux\/mount.h>/g' KernelSU-Next/kernel/infra/su_mount_ns.c
-            sed -i 's/extern long __arm64_sys_setns(const struct pt_regs \*regs);/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)\nextern long sys_setns(int fd, int nstype);\nstatic inline int path_mount(const char \*dev_name, struct path \*path, const char \*type, unsigned long flags, const void \*data) { return -EINVAL; }\n#else\nextern long __arm64_sys_setns(const struct pt_regs \*regs);\n#endif/g' KernelSU-Next/kernel/infra/su_mount_ns.c
-            sed -i 's/return __arm64_sys_setns(&regs);/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)\nreturn sys_setns(fd, nstype);\n#else\nreturn __arm64_sys_setns(\&regs);\n#endif/g' KernelSU-Next/kernel/infra/su_mount_ns.c
+            sed -i 's/extern long __arm64_sys_setns(const struct pt_regs \*regs);/#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)\nextern long __arm64_sys_setns(const struct pt_regs \*regs);\nextern int path_mount(const char \*dev_name, struct path \*path, const char \*type_page, unsigned long flags, const void \*data_page);\n#else\nextern long sys_setns(int fd, int nstype);\n#endif/g' KernelSU-Next/kernel/infra/su_mount_ns.c
+            sed -i '/extern int path_mount(/,/;/{d}' KernelSU-Next/kernel/infra/su_mount_ns.c || true
+            sed -i 's/return __arm64_sys_setns(&regs);/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)\nreturn sys_setns(fd, flags);\n#else\nreturn __arm64_sys_setns(\&regs);\n#endif/g' KernelSU-Next/kernel/infra/su_mount_ns.c
+            sed -i 's/return path_mount(/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)\nreturn -EINVAL;\n#else\nreturn path_mount(/g' KernelSU-Next/kernel/infra/su_mount_ns.c
           fi
           if [ -f "KernelSU-Next/kernel/infra/seccomp_cache.c" ]; then
             echo "[+] Patching seccomp_cache.c for Linux 4.14 SECCOMP_ARCH_* compatibility..."
