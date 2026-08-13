@@ -86,6 +86,8 @@ jobs:
           if [ -d "KernelSU-Next" ]; then
             echo "[+] Fixing linux/minmax.h header for Linux 4.14 compatibility..."
             find KernelSU-Next -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/#include <linux\/minmax.h>/#include <linux\/kernel.h>/g' {} +
+            echo "[+] Patching TWA_RESUME & fallthrough for Linux 4.14 compatibility..."
+            find KernelSU-Next -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i '1i #ifndef TWA_RESUME\n#define TWA_RESUME true\n#endif\n#ifndef fallthrough\n#define fallthrough do {} while (0)\n#endif' {} +
           fi
           if [ -f "KernelSU-Next/kernel/selinux/sepolicy.c" ]; then
             echo "[+] Stubbing sepolicy.c for Linux 4.14..."
