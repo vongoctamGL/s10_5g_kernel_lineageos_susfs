@@ -95,6 +95,9 @@ jobs:
           echo "[+] Patching minmax.h and overflow.h for 4.14 compatibility..."
           find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i '/#include <linux\/minmax.h>/d' {} + || true
           find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i '/#include <linux\/overflow.h>/d' {} + || true
+          echo "[+] Patching check_add_overflow and ksys_close for 4.14 compatibility..."
+          sed -i 's/check_add_overflow/__builtin_add_overflow/g' drivers/kernelsu/sulog/event.c || true
+          sed -i 's/ksys_close/sys_close/g' drivers/kernelsu/include/util.h || true
           echo "[+] Patching dispatch.c for 4.14 compatibility (missing headers)..."
           sed -i '1s/^/#include <linux\/sched\/signal.h>\n#include <linux\/sched\/task.h>\n/' drivers/kernelsu/supercall/dispatch.c || true
           echo "[+] Stubbing selinux_hide.c for 4.14 compatibility (struct selinux_state missing)..."
