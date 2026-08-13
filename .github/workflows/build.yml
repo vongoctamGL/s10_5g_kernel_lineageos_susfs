@@ -81,6 +81,9 @@ jobs:
           echo "[+] Stubbing pkg_observer.c for 4.14 compatibility (feature disabled)..."
           echo "int ksu_observer_init(void) { return 0; }" > drivers/kernelsu/manager/pkg_observer.c
           echo "void ksu_observer_exit(void) {}" >> drivers/kernelsu/manager/pkg_observer.c
+          echo "[+] Patching TWA_RESUME and fallthrough for 4.14 compatibility..."
+          find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/TWA_RESUME/true/g' {} + || true
+          find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/fallthrough;/\/\* fallthrough \*\//g' {} + || true
           echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
           cp drivers/kernelsu/include/*.h include/linux/ || true
           cp drivers/kernelsu/include/*.h include/ || true
