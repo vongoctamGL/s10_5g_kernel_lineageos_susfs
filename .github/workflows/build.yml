@@ -239,6 +239,11 @@ jobs:
             mv /tmp/sc_new.c "$file"
           done
 
+          find KernelSU-Next drivers/kernelsu -name "app_profile.c" 2>/dev/null | while read file; do
+            echo "[+] Patching $file..."
+            sed -i 's/void seccomp_filter_release(struct task_struct \*tsk);/\/\/ void seccomp_filter_release(struct task_struct \*tsk);/g' "$file"
+          done
+
           find KernelSU-Next drivers/kernelsu -name "file_wrapper.h" 2>/dev/null | while read file; do
             echo "[+] Patching $file..."
             sed -i 's/void ksu_file_wrapper_init(void);/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)\nstatic inline void ksu_file_wrapper_init(void) {}\n#else\nvoid ksu_file_wrapper_init(void);\n#endif/g' "$file"
