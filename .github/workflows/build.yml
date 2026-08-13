@@ -62,7 +62,7 @@ jobs:
           sed -i 's/hlist_node/list_head/g' drivers/kernelsu/hook/lsm_hook.c || true
           sed -i 's/hlist_head/list_head/g' drivers/kernelsu/hook/lsm_hook.c || true
           sed -i 's/->first/->next/g' drivers/kernelsu/hook/lsm_hook.c || true
-          sed -i 's/->pprev = .*/->prev = head;/g' drivers/kernelsu/hook/lsm_hook.c || true
+          sed -i 's/\.pprev = .*/\.prev = head;/g' drivers/kernelsu/hook/lsm_hook.c || true
           echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
           cp drivers/kernelsu/include/*.h include/linux/ || true
           cp drivers/kernelsu/include/*.h include/ || true
