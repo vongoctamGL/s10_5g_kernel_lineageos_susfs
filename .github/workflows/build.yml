@@ -117,6 +117,11 @@ jobs:
           echo "[+] Patching sys_setns for 4.14 compatibility..."
           sed -i 's/__arm64_sys_setns(\&regs)/sys_setns(fd, flags)/g' drivers/kernelsu/infra/su_mount_ns.c || true
           sed -i 's/extern long __arm64_sys_setns(const struct pt_regs \*regs);//g' drivers/kernelsu/infra/su_mount_ns.c || true
+          echo "[+] Patching ksys_unshare and path_mount in su_mount_ns.c..."
+          sed -i 's/ksys_unshare/sys_unshare/g' drivers/kernelsu/infra/su_mount_ns.c || true
+          sed -i 's/int pm_ret = path_mount(NULL, \&root_path, NULL, MS_PRIVATE | MS_REC, NULL);/int pm_ret = 0;/g' drivers/kernelsu/infra/su_mount_ns.c || true
+          echo "[+] Patching struct_size in event_queue.c..."
+          sed -i 's/struct_size(node, payload, len)/(sizeof(\*node) + (len))/g' drivers/kernelsu/infra/event_queue.c || true
           echo "[+] Patching allowlist.c for 4.14 compatibility (missing task.h)..."
           sed -i '1s/^/#include <linux\/sched\/task.h>\n/' drivers/kernelsu/policy/allowlist.c || true
           echo "[+] Patching app_profile.c for 4.14 compatibility (stub seccomp_filter_release)..."
