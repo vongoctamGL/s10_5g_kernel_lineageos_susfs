@@ -86,11 +86,12 @@ jobs:
           find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/fallthrough;/\/\* fallthrough \*\//g' {} + || true
           echo "[+] Patching app_profile.c for 4.14 compatibility..."
           sed -i '/seccomp.filter_count/d' drivers/kernelsu/policy/app_profile.c || true
-          echo "[+] Stubbing rules.c for 4.14 compatibility (SELinux rules disabled)..."
+          echo "[+] Stubbing rules.c and sepolicy.c for 4.14 compatibility (SELinux rules disabled)..."
           echo "#include <linux/types.h>" > drivers/kernelsu/selinux/rules.c
           echo "#include <linux/compiler.h>" >> drivers/kernelsu/selinux/rules.c
           echo "void apply_kernelsu_rules(void) {}" >> drivers/kernelsu/selinux/rules.c
           echo "int handle_sepolicy(void __user *user_data, u64 data_len) { return 0; }" >> drivers/kernelsu/selinux/rules.c
+          echo "" > drivers/kernelsu/selinux/sepolicy.c
           echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
           cp drivers/kernelsu/include/*.h include/linux/ || true
           cp drivers/kernelsu/include/*.h include/ || true
