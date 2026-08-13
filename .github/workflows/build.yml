@@ -219,18 +219,7 @@ jobs:
           find KernelSU-Next drivers/kernelsu -name "su_mount_ns.c" 2>/dev/null | while read file; do
             echo "[+] Patching $file for Linux 4.14..."
             # Create compat header to prepend
-            cat > /tmp/su_mount_compat.h << 'MOUNTEOF'
-#include <linux/ksu_compat.h>
-#include <linux/version.h>
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)
-/* Stub out path_mount - not available on 4.14 */
-static inline int path_mount(const char *dev_name, struct path *path,
-    const char *type_page, unsigned long flags, const void *data_page)
-{
-    return -EINVAL;
-}
-#endif
-MOUNTEOF
+            printf '#include <linux/ksu_compat.h>\n#include <linux/version.h>\n#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)\nstatic inline int path_mount(const char *dev_name, struct path *path,\n    const char *type_page, unsigned long flags, const void *data_page)\n{\n    return -EINVAL;\n}\n#endif\n' > /tmp/su_mount_compat.h
             cat /tmp/su_mount_compat.h "$file" > /tmp/su_mount_new.c
             mv /tmp/su_mount_new.c "$file"
             sed -i 's/<uapi\/linux\/mount.h>/<linux\/mount.h>/g' "$file"
