@@ -78,6 +78,9 @@ jobs:
           sed -i '1s/^/#ifndef SECCOMP_ARCH_NATIVE_NR\n#define SECCOMP_ARCH_NATIVE_NR 1024\n#endif\n/' drivers/kernelsu/infra/seccomp_cache.c || true
           echo "[+] Patching su_mount_ns.c for 4.14 compatibility..."
           sed -i 's/<uapi\/linux\/mount.h>/<linux\/mount.h>/g' drivers/kernelsu/infra/su_mount_ns.c || true
+          echo "[+] Stubbing pkg_observer.c for 4.14 compatibility (feature disabled)..."
+          echo "int ksu_observer_init(void) { return 0; }" > drivers/kernelsu/manager/pkg_observer.c
+          echo "void ksu_observer_exit(void) {}" >> drivers/kernelsu/manager/pkg_observer.c
           echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
           cp drivers/kernelsu/include/*.h include/linux/ || true
           cp drivers/kernelsu/include/*.h include/ || true
