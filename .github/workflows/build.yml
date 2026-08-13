@@ -79,6 +79,10 @@ jobs:
             echo "[+] Patching event_queue.h for Linux 4.14 poll compatibility..."
             sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif' KernelSU-Next/kernel/infra/event_queue.h
           fi
+          if [ -f "KernelSU-Next/kernel/manager/pkg_observer.c" ]; then
+            echo "[+] Patching pkg_observer.c for Linux 4.14 fsnotify_ops compatibility..."
+            sed -i 's/handle_inode_event/handle_event/g' KernelSU-Next/kernel/manager/pkg_observer.c
+          fi
           if [ -f "KernelSU-Next/kernel/infra/su_mount_ns.c" ]; then
             echo "[+] Patching su_mount_ns.c for Linux 4.14 mount.h header..."
             sed -i 's/<uapi\/linux\/mount.h>/<linux\/mount.h>/g' KernelSU-Next/kernel/infra/su_mount_ns.c
