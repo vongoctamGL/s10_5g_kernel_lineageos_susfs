@@ -89,6 +89,10 @@ jobs:
             echo "[+] Patching TWA_RESUME & fallthrough for Linux 4.14 compatibility..."
             find KernelSU-Next -type f \( -name "*.c" -o -name "*.h" \) -print0 | xargs -0 sed -i '1i #ifndef TWA_RESUME\n#define TWA_RESUME true\n#endif\n#ifndef fallthrough\n#define fallthrough do {} while (0)\n#endif'
           fi
+          if [ -f "KernelSU-Next/kernel/feature/selinux_hide.h" ]; then
+            echo "[+] Adding selinux_hide.h stubs for Linux 4.14..."
+            sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)\nstatic inline void ksu_selinux_hide_handle_post_fs_data(void) {}\nstatic inline void ksu_selinux_hide_drop_backup_if_unused(void) {}\nstatic inline void ksu_selinux_hide_handle_second_stage(void) {}\n#endif' KernelSU-Next/kernel/feature/selinux_hide.h
+          fi
           if [ -f "KernelSU-Next/kernel/feature/selinux_hide.c" ]; then
             echo "[+] Stubbing selinux_hide.c for Linux 4.14..."
             sed -i '1i #include <linux/version.h>\n#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)' KernelSU-Next/kernel/feature/selinux_hide.c
@@ -125,8 +129,8 @@ jobs:
             sed -i '1i #ifndef SECCOMP_ARCH_NATIVE_NR\n#define SECCOMP_ARCH_NATIVE_NR 500\n#endif\n#ifndef SECCOMP_ARCH_COMPAT_NR\n#define SECCOMP_ARCH_COMPAT_NR 500\n#endif' KernelSU-Next/kernel/infra/seccomp_cache.c
           fi
           if [ -f "KernelSU-Next/kernel/include/ksu.h" ]; then
-            echo "[+] Patching ksu.h for Linux 4.14 poll & seccomp & task_work compatibility..."
-            sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif\n#ifndef SECCOMP_ARCH_NATIVE_NR\n#define SECCOMP_ARCH_NATIVE_NR 500\n#endif\n#ifndef SECCOMP_ARCH_COMPAT_NR\n#define SECCOMP_ARCH_COMPAT_NR 500\n#endif\n#ifndef TWA_RESUME\n#define TWA_RESUME true\n#endif\n#ifndef fallthrough\n#define fallthrough do {} while (0)\n#endif' KernelSU-Next/kernel/include/ksu.h
+            echo "[+] Patching ksu.h for Linux 4.14 poll & seccomp & task_work & link symbols compatibility..."
+            sed -i '1i #include <linux/poll.h>\n#include <uapi/linux/eventpoll.h>\n#include <linux/uaccess.h>\n#include <linux/timekeeping.h>\n#include <linux/syscalls.h>\n#ifndef __poll_t\ntypedef unsigned int __poll_t;\n#endif\n#ifndef EPOLLHUP\n#define EPOLLHUP POLLHUP\n#endif\n#ifndef EPOLLIN\n#define EPOLLIN POLLIN\n#endif\n#ifndef EPOLLRDNORM\n#define EPOLLRDNORM POLLRDNORM\n#endif\n#ifndef SECCOMP_ARCH_NATIVE_NR\n#define SECCOMP_ARCH_NATIVE_NR 500\n#endif\n#ifndef SECCOMP_ARCH_COMPAT_NR\n#define SECCOMP_ARCH_COMPAT_NR 500\n#endif\n#ifndef TWA_RESUME\n#define TWA_RESUME true\n#endif\n#ifndef fallthrough\n#define fallthrough do {} while (0)\n#endif\n#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)\n#ifndef strncpy_from_user_nofault\n#define strncpy_from_user_nofault strncpy_from_unsafe\n#endif\n#ifndef copy_from_user_nofault\n#define copy_from_user_nofault probe_kernel_read\n#endif\n#ifndef copy_to_user_nofault\n#define copy_to_user_nofault probe_kernel_write\n#endif\n#endif\n#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0)\n#ifndef ktime_get_boottime_ts64\n#define ktime_get_boottime_ts64 get_monotonic_boottime64\n#endif\n#ifndef ksys_close\n#define ksys_close sys_close\n#endif\n#endif\n#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)\n#ifndef selinux_cred\n#define selinux_cred(cred) ((struct task_security_struct *)(cred)->security)\n#endif\n#ifndef seccomp_filter_release\n#define seccomp_filter_release(t) do {} while (0)\n#endif\n#ifndef handle_sepolicy\n#define handle_sepolicy(a, b) (0)\n#endif\n#endif' KernelSU-Next/kernel/include/ksu.h
           fi
 
           echo "[+] Creating linux/pgtable.h compatibility wrapper for Kernel 4.14..."
