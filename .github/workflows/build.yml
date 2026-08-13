@@ -224,8 +224,11 @@ jobs:
             mv /tmp/su_mount_new.c "$file"
             sed -i 's/<uapi\/linux\/mount.h>/<linux\/mount.h>/g' "$file"
             # Comment out original extern declarations that conflict
-            sed -i 's/^extern int path_mount(/\/\/ extern int path_mount(/g' "$file"
-            sed -i 's/^extern long __arm64_sys_setns(/\/\/ extern long __arm64_sys_setns(/g' "$file"
+            sed -i '/extern int path_mount(/s/^/\/\/ /' "$file"
+            sed -i '/extern long __arm64_sys_setns(/s/^/\/\/ /' "$file"
+            echo "=== DEBUG: $file lines 30-55 after patching ==="
+            sed -n '30,55p' "$file" | cat -n
+            echo "=== END DEBUG ==="
           done
 
           find KernelSU-Next drivers/kernelsu -name "seccomp_cache.c" 2>/dev/null | while read file; do
