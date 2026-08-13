@@ -52,6 +52,10 @@ jobs:
           cd kernel
           echo "[+] Integrating SukiSU-Ultra (susfs_new branch)..."
           curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs_new
+          echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
+          cp drivers/kernelsu/ksu.h include/linux/ksu.h || true
+          echo "#include <linux/ksu.h>" > include/ksu_hook.h
+          echo "#include <linux/ksu.h>" > include/linux/ksu_hook.h
           echo "[+] Integration done. (SuSFS is natively bundled)"
 
       - name: Update Defconfig
