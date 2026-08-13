@@ -84,6 +84,8 @@ jobs:
           echo "[+] Patching TWA_RESUME and fallthrough for 4.14 compatibility..."
           find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/TWA_RESUME/true/g' {} + || true
           find drivers/kernelsu/ -type f \( -name "*.c" -o -name "*.h" \) -exec sed -i 's/fallthrough;/\/\* fallthrough \*\//g' {} + || true
+          echo "[+] Patching app_profile.c for 4.14 compatibility..."
+          sed -i '/seccomp.filter_count/d' drivers/kernelsu/policy/app_profile.c || true
           echo "[+] Creating ksu_hook.h for ravindu644 kernel tree compatibility..."
           cp drivers/kernelsu/include/*.h include/linux/ || true
           cp drivers/kernelsu/include/*.h include/ || true
